@@ -1,2 +1,2 @@
 # CrowdFunding
- Crowd Funding with deadline in Solidity
+ Crowd Funding with deadline in Solidity.

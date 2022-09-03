@@ -39,11 +39,25 @@ contract('CrowdFundingWithDeadline', function(accounts){
         expect(actualBeneficiary).to.equal(beneficiary);
 
         let state = await contract.state.call();
-        console.log('PRINT');
-        console.log(String(state.words[0]));
-        console.log(ONGOING_STATE);
-        console.log('----------');
         expect(String(state.words[0])).to.equal(ONGOING_STATE);
+    });
+
+    it('funds are contributed', async function() {
+        await contract.contribute({
+            value: ONE_ETH,
+            from: contractCreator
+        });
+
+        let contributed = await contract.amounts
+            .call(contractCreator);
+            expect(Number(contributed)).to.equal(ONE_ETH);
+        
+        let totalCollected = await contract.totalCollected.call();
+        console.log('PRINT');
+        console.log(Number(totalCollected));
+        console.log(ONE_ETH);
+        console.log('----------');
+        expect(Number(totalCollected)).to.equal(ONE_ETH);
     });
 
 });

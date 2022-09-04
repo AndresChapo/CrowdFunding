@@ -33,12 +33,30 @@ contract CrowdFundingWithDeadline {
     }
 
     function contribute() public payable inState(State.Ongoing) {
+        require(
+            beforeDeadline(),
+            "No contributions after the deadline"
+        );
         amounts[msg.sender] += msg.value;
         totalCollected += msg.value;
 
         if (totalCollected >= targetAmount){
             collected = true;
         }
+    }
+
+    function finishCrowdFunding() public inState(State.Ongoing){
+        require(!beforeDeadline(), "Cannot finish campaign before a deadline");
+
+        if(collected) {
+            state = State.Succeeded;
+        } else {
+            state = State.Failed;
+        }
+    }
+
+    function beforeDeadline() public view returns(bool){
+        return currentTime() < fundingDeadline;
     }
 
     function currentTime() internal view returns(uint){

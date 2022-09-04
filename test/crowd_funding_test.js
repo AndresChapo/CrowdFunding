@@ -1,6 +1,6 @@
 
 let CrowdFundingWithDeadline = artifacts.require
-('./CrowdFundingWithDeadline')
+('./TestCrowdFundingWithDeadline')
 
 contract('CrowdFundingWithDeadline', function(accounts){
 
@@ -9,6 +9,7 @@ contract('CrowdFundingWithDeadline', function(accounts){
     let beneficiary = accounts[1];
 
     const ONE_ETH = 1000000000000000000;
+    const ERROR_MSG = 'Returned error: VM Exception while processing transaction: revert';
 
     const ONGOING_STATE = '0';
     const FAILED_STATE = '1';
@@ -35,6 +36,9 @@ contract('CrowdFundingWithDeadline', function(accounts){
         let targetAmount = await contract.targetAmount.call();
         expect(Number(targetAmount)).to.equal(ONE_ETH);
 
+        let fundingDeadline = await contract.fundingDeadline.call();
+        expect(Number(fundingDeadline)).to.equal(600);
+
         let actualBeneficiary = await contract.beneficiary.call();
         expect(actualBeneficiary).to.equal(beneficiary);
 
@@ -58,6 +62,39 @@ contract('CrowdFundingWithDeadline', function(accounts){
         console.log(ONE_ETH);
         console.log('----------');
         expect(Number(totalCollected)).to.equal(ONE_ETH);
+    });
+
+    it('funds are contributed', async function() {
+        try {
+            await contract.setCurrentTime(601);
+            await contract.sendTransaction({
+                value: ONE_ETH,
+                from: contractCreator
+            });
+            expect.fail();
+        } catch (error) {
+            expect(error.message).to.equal(ERROR_MSG);
+        }
+    });
+
+    it('crowdfunding succeded', async function() {
+        await contract.contribute({
+            value: ONE_ETH, 
+            from: contractCreator
+        });
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdFunding();
+        let state = await contract.state.call();
+
+        expect(String(state.words[0])).to.equal(SUCCEEDED_STATE);
+    });
+    
+    it('crowdfunding failed', async function() {
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdFunding();
+        let state = await contract.state.call();
+
+        expect(String(state.words[0])).to.equal(FAILED_STATE);
     });
 
 });

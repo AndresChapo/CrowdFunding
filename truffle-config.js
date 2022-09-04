@@ -65,6 +65,7 @@ module.exports = {
     // options below to some value.
     //
     ganache: {
+      provider: () => new web3.providers.HttpProvider(localhost),
       host: "localhost",
       port: 7545,
       gas: 5000000,

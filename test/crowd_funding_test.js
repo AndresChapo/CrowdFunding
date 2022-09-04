@@ -128,4 +128,14 @@ contract('CrowdFundingWithDeadline', function(accounts){
         expect(Number(amount)).to.equal(0);
     });
 
+    it('event is emitted', async function() {
+        let watcher = contract.CampaingnFinished();
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdFunding();
+
+        let events = await watcher.get();
+        let event = events[0];
+        expect(Number(event.args.totalCollected)).to.equal(0);
+        expect(event.args.succeeded).to.equal(false);
+    });
 });
